@@ -73,24 +73,14 @@ function risparser:process_record()
   self.current = {}
 end
 
+function risparser:get_records()
+  return self.records or {}
+end
+
 function risparser.new()
   local t = setmetatable({}, risparser)
   return t
 end
 
-local test = risparser.new()
-test:parse_file()
-
-local keywords = {}
-for k, v in ipairs(test.records) do
-  for _, kw in ipairs(v.KW or {}) do
-    local current = keywords[kw] or {}
-    table.insert(current, k)
-    keywords[kw] = current
-    print(kw)
-  end
-end
-
-for kw, records in pairs(keywords) do
-end
+return risparser.new()
 
