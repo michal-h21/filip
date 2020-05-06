@@ -7,12 +7,15 @@ argparse:argument("input"):args("?"):description("Vstupní RIS soubor (použije 
 argparse:option "-t" "--threshold":description("Práh pro výpis frekvence")
 argparse:flag "-d" "--dot":description("Vypsat graf pro GraphViz")
 
+argparse:option "-i" "--ignore":description("Ignorované klíčové slovo")
+
 local args = argparse:parse()
 
 risparser:parse_file(args.input)
 local threshold = tonumber(args.threshold) or 4
+local ignored_keyword = args.ignore or ""
 
-local graph_format = "%s\t%s\t%s"
+local graph_format = "%s\t%s\t%s\t%f"
 local start_graph  
 local end_graph  
 if args.dot then
@@ -22,8 +25,12 @@ if args.dot then
 end
 
 local graph = {}
+
+local records = risparser:get_records()
+local number_of_records = #records
+
 -- count keyword pair frequency
-for _, rec in ipairs(risparser:get_records()) do
+for _, rec in ipairs(records) do
   local keywords = rec.KW or {}
   for _, kw in ipairs(keywords) do
     -- get table with related keywords for the current keyword
@@ -31,7 +38,7 @@ for _, rec in ipairs(risparser:get_records()) do
     -- save keywords from the current record
     for _, related in ipairs(keywords) do
       -- skip the current keyword
-      if related ~= kw then
+      if related ~= kw and ignored_keyword ~= related and kw ~= ignored_keyword then
         local count = current[related] or 0
         count = count + 1
         current[related] = count
@@ -40,6 +47,7 @@ for _, rec in ipairs(risparser:get_records()) do
     graph[kw] = current
   end
 end
+
 
 if start_graph then print(start_graph) end
 
@@ -53,7 +61,7 @@ for keyword, pair in pairs(graph) do
       local nk = name .. keyword
       used[nk] = true
       if not used[kn] then
-        print(string.format(graph_format, keyword, name, frequency))
+        print(string.format(graph_format, keyword, name, frequency, (frequency/number_of_records)*100))
       end
     end
   end
