@@ -38,10 +38,15 @@ for _, rec in ipairs(records) do
     -- save keywords from the current record
     for _, related in ipairs(keywords) do
       -- skip the current keyword
-      if related ~= kw and ignored_keyword ~= related and kw ~= ignored_keyword then
-        local count = current[related] or 0
-        count = count + 1
-        current[related] = count
+      -- skip ignored keywords
+      if related ~= kw and ignored_keyword ~= related and kw ~= ignored_keyword  then
+        -- skip if the related keyword had been already used as main keyword
+        local used_keywords = graph[related] or {}
+        if not used_keywords[keyword] then
+          local count = current[related] or 0
+          count = count + 1
+          current[related] = count
+        end
       end
     end
     graph[kw] = current
